@@ -15,7 +15,7 @@ jobs:
             cat /tmp/gcp_token.json 
       - run:
           name: Authenticate with GCP
-          env:
+          environment:
             GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE: projects/755717535288/locations/global/workloadIdentityPools/jennings-oidc-test-12345/providers/circleci
             GCP_CREDENTIAL_CONFIGURATION_FILE: gcp_creds.json
             GCP_SERVICE_ACCOUNT_EMAIL: makoto-elliptic-oidc@makoto-workbench.iam.gserviceaccount.com
