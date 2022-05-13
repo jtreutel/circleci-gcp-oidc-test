@@ -35,6 +35,8 @@ jobs:
               echo 'export GOOGLE_APPLICATION_CREDENTIALS="${GCP_CREDENTIAL_CONFIGURATION_FILE}"' | tee -a $BASH_ENV
       - run:
             name: Verify that gcloud is authenticated
+            environment:
+              GCP_SERVICE_ACCOUNT_EMAIL: makoto-elliptic-oidc@makoto-workbench.iam.gserviceaccount.com
             command: gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
 
       - run:
