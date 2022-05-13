@@ -47,4 +47,6 @@ jobs:
 workflows:
   main:
     jobs: 
-      - gcp-oidc-test
+      - gcp-oidc-test:
+          context: 
+          - empty-context
