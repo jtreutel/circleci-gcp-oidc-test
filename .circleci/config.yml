@@ -3,6 +3,38 @@ version: "2.1"
 orbs:
   gcp-cli: circleci/gcp-cli@2.4.1
 
+commands:
+  gcp-oidc-auth:
+    description: "Authenticate with GCP using a CircleCI OIDC token."
+    parameters:
+      GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE: 
+        type: env_var_name
+        default: GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE
+      GCP_CREDENTIAL_CONFIGURATION_FILE: 
+        type: env_var_name
+        default: GCP_CREDENTIAL_CONFIGURATION_FILE
+      GCP_SERVICE_ACCOUNT_EMAIL: 
+        type: env_var_name
+        default: GCP_SERVICE_ACCOUNT_EMAIL
+      GCP_CREDENTIAL_SOURCE_FILE: 
+        type: string
+        default: /tmp/oidc_token.json
+    steps:
+      - run:
+          command: |
+            # Store OIDC token in temp file
+            echo $CIRCLE_OIDC_TOKEN > << parameters.GCP_CREDENTIAL_SOURCE_FILE >>
+            # Create a credential configuration for the generated OIDC ID Token
+            gcloud iam workload-identity-pools create-cred-config \
+                "${<< parameters.GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE >>}"\
+                --output-file="${<< parameters.GCP_CREDENTIAL_CONFIGURATION_FILE >>}" \
+                --service-account="${<< parameters.GCP_SERVICE_ACCOUNT_EMAIL >>}" \
+                --credential-source-file="${GCP_CREDENTIAL_SOURCE_FILE}"
+            # Configure gcloud to leverage the generated credential configuration
+            gcloud auth login --brief --cred-file "${GCP_CREDENTIAL_CONFIGURATION_FILE}"
+            # Configure ADC
+            echo "export GOOGLE_APPLICATION_CREDENTIALS='${GCP_CREDENTIAL_CONFIGURATION_FILE}'" | tee -a $BASH_ENV
+
 jobs:
   gcp-oidc-test:
     executor: gcp-cli/default
@@ -33,28 +65,43 @@ jobs:
               # Configure ADC
               # https://cloud.google.com/sdk/gcloud/reference/auth/application-default/print-access-token
               echo "export GOOGLE_APPLICATION_CREDENTIALS='${GCP_CREDENTIAL_CONFIGURATION_FILE}'" | tee -a $BASH_ENV
-              source $BASH_ENV
-              printenv > env.txt && cat env.txt
+
       - run:
             name: Verify that gcloud is authenticated
             environment:
               GCP_SERVICE_ACCOUNT_EMAIL: jennings-oidc-test@makoto-workbench.iam.gserviceaccount.com
-            command: |
-                printenv > env.txt && cat env.txt
-                gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
-
+            command: gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
 
       - run:
             name: Verify that ADC works
             command: |
-                printenv > env.txt && cat env.txt
                 ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
                 curl -f -i -H "Content-Type: application/x-www-form-urlencoded" -d "access_token=${ACCESS_TOKEN}" https://www.googleapis.com/oauth2/v1/tokeninfo
     
+  gcp-oidc-cmd-use-defaults:
+    executor: gcp-cli/default
+    steps:
+      - gcp-cli/install
+      - gcp-oidc-auth
+      - run:
+          name: Verify that gcloud is authenticated
+          environment:
+            GCP_SERVICE_ACCOUNT_EMAIL: jennings-oidc-test@makoto-workbench.iam.gserviceaccount.com
+          command: gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
+
+      - run:
+          name: Verify that ADC works
+          command: |
+              ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
+              curl -f -i -H "Content-Type: application/x-www-form-urlencoded" -d "access_token=${ACCESS_TOKEN}" https://www.googleapis.com/oauth2/v1/tokeninfo
+
 
 workflows:
   main:
     jobs: 
       - gcp-oidc-test:
+          context: 
+          - empty-context
+      - gcp-oidc-cmd-use-defaults:
           context: 
           - empty-context
