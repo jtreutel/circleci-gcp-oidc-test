@@ -33,7 +33,8 @@ jobs:
               # Configure ADC
               # https://cloud.google.com/sdk/gcloud/reference/auth/application-default/print-access-token
               echo 'export GOOGLE_APPLICATION_CREDENTIALS="${GCP_CREDENTIAL_CONFIGURATION_FILE}"' | tee -a $BASH_ENV
-              echo $BASH_ENV
+              source $BASH_ENV
+              printenv > env.txt && cat env.txt
       - run:
             name: Verify that gcloud is authenticated
             environment:
