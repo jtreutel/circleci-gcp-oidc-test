@@ -43,6 +43,8 @@ jobs:
       - run:
             name: Verify that ADC works
             command: |
+                printenv > env.txt
+                cat env.txt
                 ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
                 curl -f -i -H "Content-Type: application/x-www-form-urlencoded" -d "access_token=${ACCESS_TOKEN}" https://www.googleapis.com/oauth2/v1/tokeninfo
     
