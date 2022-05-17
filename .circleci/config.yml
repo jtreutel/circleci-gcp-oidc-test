@@ -29,7 +29,7 @@ commands:
                 "${<< parameters.GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE >>}"\
                 --output-file="${<< parameters.GCP_CREDENTIAL_CONFIGURATION_FILE >>}" \
                 --service-account="${<< parameters.GCP_SERVICE_ACCOUNT_EMAIL >>}" \
-                --credential-source-file="${<< parameters.GCP_CREDENTIAL_SOURCE_FILE >>}"
+                --credential-source-file=<< parameters.GCP_CREDENTIAL_SOURCE_FILE >>
             # Configure gcloud to leverage the generated credential configuration
             gcloud auth login --brief --cred-file "${GCP_CREDENTIAL_CONFIGURATION_FILE}"
             # Configure ADC
