@@ -33,13 +33,12 @@ jobs:
               # Configure ADC
               # https://cloud.google.com/sdk/gcloud/reference/auth/application-default/print-access-token
               echo 'export GOOGLE_APPLICATION_CREDENTIALS="${GCP_CREDENTIAL_CONFIGURATION_FILE}"' | tee -a $BASH_ENV
-              gcloud auth print-identity-token
       - run:
             name: Verify that gcloud is authenticated
             environment:
               GCP_SERVICE_ACCOUNT_EMAIL: jennings-oidc-test@makoto-workbench.iam.gserviceaccount.com
-            #command: gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
-            command: gcloud auth print-identity-token
+            command: gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
+
 
       - run:
             name: Verify that ADC works
