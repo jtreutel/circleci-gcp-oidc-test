@@ -52,7 +52,7 @@ commands:
             echo "export GOOGLE_APPLICATION_CREDENTIALS='<< parameters.gcp_creds_file_path >>'" | tee -a $BASH_ENV
 
 jobs:
-  gcp-oidc-using-defaults:
+  gcp-oidc-defaults:
     executor: gcp-cli/default
     steps:
       - gcp-cli/install
@@ -74,9 +74,6 @@ jobs:
 workflows:
   main:
     jobs: 
-      - gcp-oidc-test:
-          context: 
-          - empty-context
-      - gcp-oidc-cmd-use-defaults:
+      - gcp-oidc-defaults:
           context: 
           - gcp-oidc-dev
