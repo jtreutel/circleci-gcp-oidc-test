@@ -95,7 +95,9 @@ jobs:
       - gcp-oidc-generate-creds
       - persist_to_workspace:
           root: /home/circleci/
-          paths: gcp_creds.json
+          paths: 
+          - gcp_creds.json
+          - oidc_token.json
   gcp-oidc-reuse-creds:
     executor: gcp-cli/default
     steps:
