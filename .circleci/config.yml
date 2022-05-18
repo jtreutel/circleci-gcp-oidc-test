@@ -101,6 +101,16 @@ jobs:
     steps:
       - attach_workspace:
           at: /home/circleci/
+      - gcp-oidc-auth
+      - run:
+          name: Verify that gcloud is authenticated
+          command: gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
+      - run:
+          name: Verify that ADC works
+          command: |
+              ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
+              curl -f -i -H "Content-Type: application/x-www-form-urlencoded" -d "access_token=${ACCESS_TOKEN}" https://www.googleapis.com/oauth2/v1/tokeninfo
+
             
 
 workflows:
