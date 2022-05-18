@@ -94,13 +94,13 @@ jobs:
       - gcp-cli/install
       - gcp-oidc-generate-creds
       - persist_to_workspace:
-          root: ~
+          root: /home/circleci/
           paths: gcp_creds.json
   gcp-oidc-reuse-creds:
     executor: gcp-cli/default
     steps:
       - attach_workspace:
-          at: ~
+          at: /home/circleci/
             
 
 workflows:
