@@ -32,6 +32,8 @@ commands:
     steps:
       - run:
           command: |
+            # debug
+            echo "projects/<< parameters.project_id >>/locations/global/workloadIdentityPools/<< parameters.workload_identity_pool_id >>/providers/<< parameters.workload_identity_pool_provider_id >>"
             # Store OIDC token in temp file
             echo $CIRCLE_OIDC_TOKEN > << parameters.oidc_token_file_path >>
             # Create a credential configuration for the generated OIDC ID Token
