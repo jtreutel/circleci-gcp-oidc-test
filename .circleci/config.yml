@@ -7,33 +7,43 @@ commands:
   gcp-oidc-auth:
     description: "Authenticate with GCP using a CircleCI OIDC token."
     parameters:
-      GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE: 
+      #GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE: 
+      #  type: env_var_name
+      #  default: GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE
+      # projects/755717535288/locations/global/workloadIdentityPools/jennings-oidc-test-12345/providers/circleci
+      project_id: 
         type: env_var_name
-        default: GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE
-      GCP_CREDENTIAL_CONFIGURATION_FILE: 
+        default: GCP_PROJECT_ID
+      workload_identity_pool_id: 
         type: env_var_name
-        default: GCP_CREDENTIAL_CONFIGURATION_FILE
-      GCP_SERVICE_ACCOUNT_EMAIL: 
+        default: GCP_WIP_ID
+      workload_identity_pool_provider_id: 
+        type: env_var_name
+        default: GCP_WIP_PROVIDER_ID
+      service_account_email: 
         type: env_var_name
         default: GCP_SERVICE_ACCOUNT_EMAIL
-      GCP_CREDENTIAL_SOURCE_FILE: 
+      gcp_creds_file_path: 
         type: string
-        default: /tmp/oidc_token.json
+        default: /home/circleci/gcp_creds.json
+      oidc_token_file_path: 
+        type: string
+        default: /home/circleci/oidc_token.json
     steps:
       - run:
           command: |
             # Store OIDC token in temp file
-            echo $CIRCLE_OIDC_TOKEN > << parameters.GCP_CREDENTIAL_SOURCE_FILE >>
+            echo $CIRCLE_OIDC_TOKEN > << parameters.oidc_token_file_path >>
             # Create a credential configuration for the generated OIDC ID Token
             gcloud iam workload-identity-pools create-cred-config \
-                "${<< parameters.GCP_WORKLOAD_IDENTITY_POOL_AUDIENCE >>}"\
-                --output-file="${<< parameters.GCP_CREDENTIAL_CONFIGURATION_FILE >>}" \
-                --service-account="${<< parameters.GCP_SERVICE_ACCOUNT_EMAIL >>}" \
-                --credential-source-file=<< parameters.GCP_CREDENTIAL_SOURCE_FILE >>
+                "projects/<< parameters.project_id >>/locations/global/workloadIdentityPools/<< parameters.workload_identity_pool_id >>/providers/<< parameters.workload_identity_pool_provider_id >>"\
+                --output-file="<< parameters.gcp_creds_file_path >>" \
+                --service-account="${<< parameters.service_account_email >>}" \
+                --credential-source-file=<< parameters.oidc_token_file_path >>
             # Configure gcloud to leverage the generated credential configuration
-            gcloud auth login --brief --cred-file "${GCP_CREDENTIAL_CONFIGURATION_FILE}"
+            gcloud auth login --brief --cred-file "<< parameters.gcp_creds_file_path >>"
             # Configure ADC
-            echo "export GOOGLE_APPLICATION_CREDENTIALS='${GCP_CREDENTIAL_CONFIGURATION_FILE}'" | tee -a $BASH_ENV
+            echo "export GOOGLE_APPLICATION_CREDENTIALS='<< parameters.gcp_creds_file_path >>'" | tee -a $BASH_ENV
 
 jobs:
   gcp-oidc-test:
@@ -104,4 +114,4 @@ workflows:
           - empty-context
       - gcp-oidc-cmd-use-defaults:
           context: 
-          - empty-context
+          - gcp-oidc-dev
