@@ -51,6 +51,8 @@ commands:
             # Configure ADC
             echo "export GOOGLE_APPLICATION_CREDENTIALS='<< parameters.gcp_creds_file_path >>'" | tee -a $BASH_ENV
 
+
+
 jobs:
   gcp-oidc-defaults:
     executor: gcp-cli/default
@@ -69,11 +71,59 @@ jobs:
               ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
               curl -f -i -H "Content-Type: application/x-www-form-urlencoded" -d "access_token=${ACCESS_TOKEN}" https://www.googleapis.com/oauth2/v1/tokeninfo
 
+  gcp-oidc-override-sa:
+    executor: gcp-cli/default
+    environment:
+      GCP_SERVICE_ACCOUNT_EMAIL: "jennings-oidc-second-svc-acct@makoto-workbench.iam.gserviceaccount.com"
+    steps:
+      - gcp-cli/install
+      - gcp-oidc-generate-creds
+      - gcp-oidc-auth
+      - run:
+          name: Verify that gcloud is authenticated
+          command: gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
+      - run:
+          name: Verify that ADC works
+          command: |
+              ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
+              curl -f -i -H "Content-Type: application/x-www-form-urlencoded" -d "access_token=${ACCESS_TOKEN}" https://www.googleapis.com/oauth2/v1/tokeninfo
 
+  gcp-oidc-make-and-store-creds:
+    executor: gcp-cli/default
+    steps:
+      - gcp-cli/install
+      - gcp-oidc-generate-creds
+      - persist_to_workspace:
+          root: .
+          paths: /home/circleci/gcp_creds.json
+  gcp-oidc-reuse-creds:
+    executor: gcp-cli/default
+    steps:
+      - gcp-cli/install
+      - gcp-oidc-generate-creds
+      - persist_to_workspace:
+          root: .
+          paths: /home/circleci/gcp_creds.json
+            
 
 workflows:
   main:
     jobs: 
       - gcp-oidc-defaults:
+          name: GCP OIDC Auth
           context: 
           - gcp-oidc-dev
+      - gcp-oidc-override-sa:
+          name: GCP OIDC Auth Using Alternate Service Acct
+          context: 
+          - gcp-oidc-dev
+      - gcp-oidc-make-and-store-creds:
+          name: GCP OIDC Generate and Store Creds
+          context: 
+          - gcp-oidc-dev
+      - gcp-oidc-reuse-creds:
+          name: GCP OIDC Use Stored Creds
+          context: 
+          - gcp-oidc-dev
+          requires:
+          - GCP OIDC Generate and Store Creds
