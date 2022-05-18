@@ -101,6 +101,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /home/circleci/
+      - gcp-cli/install
       - gcp-oidc-auth
       - run:
           name: Verify that gcloud is authenticated
