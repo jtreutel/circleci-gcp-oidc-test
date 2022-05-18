@@ -88,7 +88,7 @@ jobs:
               ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
               curl -f -i -H "Content-Type: application/x-www-form-urlencoded" -d "access_token=${ACCESS_TOKEN}" https://www.googleapis.com/oauth2/v1/tokeninfo
 
-  gcp-oidc-make-and-store-creds:
+  gcp-oidc-generate-and-store-creds:
     executor: gcp-cli/default
     steps:
       - gcp-cli/install
@@ -125,7 +125,7 @@ workflows:
           name: GCP OIDC Auth Using Alternate Service Acct
           context: 
           - gcp-oidc-dev
-      - gcp-oidc-make-and-store-creds:
+      - gcp-oidc-generate-and-store-creds:
           name: GCP OIDC Generate and Store Creds
           context: 
           - gcp-oidc-dev
