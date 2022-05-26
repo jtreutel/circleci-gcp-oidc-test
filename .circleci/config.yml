@@ -122,18 +122,18 @@ workflows:
       - gcp-oidc-defaults:
           name: Generate Creds File and Authenticate
           context: 
-          - gcp-oidc-dev
+          - gcp-oidc-dev-tf
       - gcp-oidc-override-sa:
           name: Authenticate Using Alternate Service Account
           context: 
-          - gcp-oidc-dev
+          - gcp-oidc-dev-tf
       - gcp-oidc-generate-and-store-cred-config-file:
           name: Generate and Store Creds File
           context: 
-          - gcp-oidc-dev
+          - gcp-oidc-dev-tf
       - gcp-oidc-reuse-cred-config-file:
           name: Auth Using Stored Creds File
           context: 
-          - gcp-oidc-dev
+          - gcp-oidc-dev-tf
           requires:
           - Generate and Store Creds File
