@@ -62,8 +62,6 @@ jobs:
       - gcp-oidc-authenticate
       - run:
           name: Verify that gcloud is authenticated
-          environment:
-            GCP_SERVICE_ACCOUNT_EMAIL: jennings-oidc-test@makoto-workbench.iam.gserviceaccount.com
           command: gcloud iam service-accounts get-iam-policy "${GCP_SERVICE_ACCOUNT_EMAIL}"
       - run:
           name: Verify that ADC works
@@ -123,10 +121,10 @@ workflows:
           name: Generate Creds File and Authenticate
           context: 
           - gcp-oidc-dev-tf
-      - gcp-oidc-override-sa:
-          name: Authenticate Using Alternate Service Account
-          context: 
-          - gcp-oidc-dev-tf
+      #- gcp-oidc-override-sa:
+      #    name: Authenticate Using Alternate Service Account
+      #    context: 
+      #    - gcp-oidc-dev-tf
       - gcp-oidc-generate-and-store-cred-config-file:
           name: Generate and Store Creds File
           context: 
